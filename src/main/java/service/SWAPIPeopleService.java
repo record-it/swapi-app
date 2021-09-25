@@ -3,7 +3,9 @@ package service;
 import model.Person;
 import repository.SWPeopleRepository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class SWAPIPeopleService implements SWPeopleService{
 
@@ -20,6 +22,23 @@ public class SWAPIPeopleService implements SWPeopleService{
     @Override
     public Optional<Person> findById(int id) {
        return people.findById(id);
+    }
+
+    @Override
+    public List<Person> findByHairColor(String color) {
+        return people.findAll().stream()
+                .filter(person -> color.equals(person.getHair_color()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public int countFilmsByPersonId(int id) {
+        Optional<Person> person = people.findById(id);
+        if (person.isPresent()){
+            return person.get().getFilms().size();
+        } else {
+            return 0;
+        }
     }
 
 }
