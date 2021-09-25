@@ -24,7 +24,7 @@ public class CommandLineSWAPIApp {
             } else {
                 System.out.println("Na razie brak informacji o tej osobie lub nie ma jej!");
             }
-            scanner.next();
+            scanner.nextLine();
         }
     }
 }
