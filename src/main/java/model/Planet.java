@@ -1,8 +1,11 @@
 package model;
 
-import java.security.Timestamp;
+import lombok.Data;
+
+import java.sql.Timestamp;
 import java.util.List;
 
+@Data
 public class Planet {
     private String name;
     private String rotation_period;
