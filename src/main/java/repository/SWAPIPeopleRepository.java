@@ -13,8 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class SWAPIPeopleRepository implements SWPeopleRepository{
+    public static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient client = HttpClient.newHttpClient();
     public static final String SWAPI_DEV_API_PEOPLE = "https://swapi.dev/api/people/";
     @Override
@@ -26,12 +28,29 @@ public class SWAPIPeopleRepository implements SWPeopleRepository{
 
     @Override
     public Optional<Person> findById(int id) {
+//        if (cache.containsKey(id)){
+//            return Optional.of(cache.get(id));
+//        }
+//        else {
+//            try {
+//                getPersonFromApi(SWAPI_DEV_API_PEOPLE + id, id);
+//            } catch (URISyntaxException e) {
+//                System.err.println(e.getMessage());
+//            }
+//            return Optional.empty();
+//        }
         if (cache.containsKey(id)){
             return Optional.of(cache.get(id));
-        }
-        else {
+        } else{
             try {
-                getPersonFromApi(SWAPI_DEV_API_PEOPLE + id, id);
+                getObjectFromApi(SWAPI_DEV_API_PEOPLE + id, id, body -> {
+                    try {
+                        Person person = MAPPER.readValue(body, Person.class);
+                        cache.put(id, person);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                });
             } catch (URISyntaxException e) {
                 System.err.println(e.getMessage());
             }
@@ -58,6 +77,19 @@ public class SWAPIPeopleRepository implements SWPeopleRepository{
                         System.err.println("Problem z parsowanie JSON!");
                         System.err.println(e.getMessage());
                     }
+                });
+    }
+    private void getObjectFromApi(String url, int id, Consumer<String> consumer) throws URISyntaxException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(url))
+                .GET()
+                .build();
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .whenCompleteAsync((response, exeption) -> {
+                    if (exeption != null){
+                        System.err.println("Problem z odpowiedzią z serwera!");
+                    }
+                        consumer.accept(response.body());
                 });
     }
 }
